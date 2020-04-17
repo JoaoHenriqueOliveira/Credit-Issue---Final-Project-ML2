@@ -1,0 +1,41 @@
+Train results:
+AdaBoostClassifier -> F1: 0.7680311890838206 	Accuracy: 0.7711538461538462	Precision: 0.7786561264822134	Recall: 0.7576923076923077 
+BaggingClassifier -> F1: 0.9843749999999999 	Accuracy: 0.9846153846153847	Precision: 1.0	Recall: 0.9692307692307692 
+ExtraTreesClassifier -> F1: 1.0 	Accuracy: 1.0	Precision: 1.0	Recall: 1.0 
+GradientBoostClassifier -> F1: 0.9245647969052223 	Accuracy: 0.925	Precision: 0.9299610894941635	Recall: 0.9192307692307692 
+RandomForestClassifier -> F1: 1.0 	Accuracy: 1.0	Precision: 1.0	Recall: 1.0 
+DecisionTreeClassifier -> F1: 1.0 	Accuracy: 1.0	Precision: 1.0	Recall: 1.0 
+RidgeClassifier -> F1: 0.6503067484662577 	Accuracy: 0.6711538461538461	Precision: 0.6943231441048034	Recall: 0.6115384615384616 
+LogisticRegression -> F1: 0.6030534351145038 	Accuracy: 0.6	Precision: 0.5984848484848485	Recall: 0.6076923076923076 
+LogisticRegressionCV -> F1: 0.6666666666666666 	Accuracy: 0.65	Precision: 0.6363636363636364	Recall: 0.7 
+SGDClassifier -> F1: 0.0 	Accuracy: 0.5	Precision: 0.0	Recall: 0.0 
+KNeighborsClassifier -> F1: 0.6731141199226305 	Accuracy: 0.675	Precision: 0.6770428015564203	Recall: 0.6692307692307692 
+SVC -> F1: 0.17006802721088438 	Accuracy: 0.5307692307692308	Precision: 0.7352941176470589	Recall: 0.09615384615384616 
+
+Test results:
+AdaBoostClassifier -> F1: 0.20076238881829733 	Accuracy: 0.6102850061957868	Precision: 0.12079510703363915	Recall: 0.5939849624060151 
+BaggingClassifier -> F1: 0.23338735818476503 	Accuracy: 0.7069392812887236	Precision: 0.1487603305785124	Recall: 0.5413533834586466 
+ExtraTreesClassifier -> F1: 0.23109843081312414 	Accuracy: 0.6660470879801735	Precision: 0.1426056338028169	Recall: 0.6090225563909775 
+GradientBoostClassifier -> F1: 0.22646310432569974 	Accuracy: 0.6232961586121437	Precision: 0.1362940275650842	Recall: 0.6691729323308271 
+RandomForestClassifier -> F1: 0.24624624624624625 	Accuracy: 0.6889714993804213	Precision: 0.15384615384615385	Recall: 0.6165413533834586 
+DecisionTreeClassifier -> F1: 0.19711538461538464 	Accuracy: 0.5861214374225526	Precision: 0.11731044349070101	Recall: 0.6165413533834586 
+RidgeClassifier -> F1: 0.22707423580786026 	Accuracy: 0.671003717472119	Precision: 0.1407942238267148	Recall: 0.5864661654135338 
+LogisticRegression -> F1: 0.176056338028169 	Accuracy: 0.5650557620817844	Precision: 0.1043115438108484	Recall: 0.5639097744360902 
+LogisticRegressionCV -> F1: 0.19212962962962962 	Accuracy: 0.5675340768277571	Precision: 0.11354309165526676	Recall: 0.6240601503759399 
+SGDClassifier -> F1: 0.0 	Accuracy: 0.9175960346964065	Precision: 0.0	Recall: 0.0 
+KNeighborsClassifier -> F1: 0.1659090909090909 	Accuracy: 0.5452292441140025	Precision: 0.09772423025435073	Recall: 0.5488721804511278 
+SVC -> F1: 0.06896551724137931 	Accuracy: 0.8828996282527881	Precision: 0.1	Recall: 0.05263157894736842 
+
+CV results:
+AdaBoostClassifier -> F1: 0.1176470588235294 	Accuracy: 0.9191449814126395	Precision: 0.29	Recall: 0.0737913486005089 
+BaggingClassifier -> F1: 0.10714285714285715 	Accuracy: 0.9163568773234201	Precision: 0.24324324324324326	Recall: 0.06870229007633588 
+ExtraTreesClassifier -> F1: 0.09633027522935779 	Accuracy: 0.9267657992565056	Precision: 0.4883720930232558	Recall: 0.05343511450381679 
+GradientBoostClassifier -> F1: 0.11538461538461539 	Accuracy: 0.9230483271375465	Precision: 0.36	Recall: 0.06870229007633588 
+RandomForestClassifier -> F1: 0.044117647058823525 	Accuracy: 0.9275092936802974	Precision: 0.6	Recall: 0.022900763358778626 
+DecisionTreeClassifier -> F1: 0.12903225806451613 	Accuracy: 0.8544609665427509	Precision: 0.11462450592885376	Recall: 0.1475826972010178 
+RidgeClassifier -> F1: 0.0 	Accuracy: 0.9269516728624535	Precision: 0.0	Recall: 0.0 
+LogisticRegression -> F1: 0.0 	Accuracy: 0.9269516728624535	Precision: 0.0	Recall: 0.0 
+LogisticRegressionCV -> F1: 0.0 	Accuracy: 0.9269516728624535	Precision: 0.0	Recall: 0.0 
+SGDClassifier -> F1: 0.0 	Accuracy: 0.9262081784386617	Precision: 0.0	Recall: 0.0 
+KNeighborsClassifier -> F1: 0.014018691588785047 	Accuracy: 0.9215613382899628	Precision: 0.08571428571428572	Recall: 0.007633587786259542 
+SVC -> F1: 0.0 	Accuracy: 0.9269516728624535	Precision: 0.0	Recall: 0.0 

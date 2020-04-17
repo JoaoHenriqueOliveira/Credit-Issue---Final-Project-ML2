@@ -9,6 +9,9 @@ from sklearn.model_selection import cross_val_predict, cross_val_score
 from sklearn.preprocessing import StandardScaler
 from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
 from imblearn.under_sampling import RandomUnderSampler
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import MinMaxScaler
+
 
 ##############################################################################################
 
@@ -26,6 +29,7 @@ from sklearn.linear_model import LogisticRegression #Logistic Regression (aka lo
 from sklearn.linear_model import LogisticRegressionCV #Logistic Regression CV (aka logit, MaxEnt) classifier.
 from sklearn.linear_model import SGDClassifier
 
+from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier #Classifier implementing the k-nearest neighbors vote.
 from sklearn.neighbors import RadiusNeighborsClassifier #Classifier implementing a vote among neighbors within a given radius
 
@@ -53,7 +57,7 @@ def load_dataset(name):
     
     return X, y
 
-def model():
+def model(scale = False, pca = False, over = False, under = False):
     clf = [
         [AdaBoostClassifier(), "AdaBoostClassifier"],
         [BaggingClassifier(), "BaggingClassifier"],
@@ -62,7 +66,7 @@ def model():
         [RandomForestClassifier(), "RandomForestClassifier"],
         
         [DecisionTreeClassifier(), "DecisionTreeClassifier"],
-        
+        #[MultinomialNB(), "MultinomialNB"],
         [RidgeClassifier(), "RidgeClassifier"],
         [LogisticRegression(), "LogisticRegression"],
         [LogisticRegressionCV(), "LogisticRegressionCV"],
@@ -75,14 +79,35 @@ def model():
     performance_test = {}
     performance_cv = {}
     
-    filename = "../data/data_scaled.csv"
+    filename = "../data/df_cluster.csv"
     X, y = load_dataset(filename)
+    
+    if scale:        
+        scaled_features = StandardScaler().fit_transform(X.values)
+        X = pd.DataFrame(scaled_features, index = X.index, columns = X.columns)
+    
+    if pca:
+        n_comp = 20
+        columns = []
+        for i in range(n_comp):
+            columns.append("pca" +str(i+1))
+            
+        scaled_features = MinMaxScaler().fit_transform(X.values)
+        scaled_features_df = pd.DataFrame(scaled_features, index = X.index, columns = X.columns)
+        pca = PCA(n_components = n_comp)
+        pca.fit(scaled_features_df)
+        X = pca.transform(scaled_features_df)
+        X = pd.DataFrame(X)
+        X.columns = columns
+                 
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = 42)
-
-    ros = RandomOverSampler(random_state=0)
-    X_train, y_train = ros.fit_resample(X_train, y_train)
-    rus = RandomUnderSampler(random_state=0)
-    X_train, y_train = rus.fit_resample(X_train, y_train)
+    
+    if over:
+        ros = RandomOverSampler(sampling_strategy = 'minority')
+        X_train, y_train = ros.fit_resample(X_train, y_train)
+    if under:
+        rus = RandomUnderSampler(sampling_strategy = 'majority')
+        X_train, y_train = rus.fit_resample(X_train, y_train)
     
     for classifier, clf_name in clf: performance_train[clf_name] = []
     for classifier, clf_name in clf: performance_test[clf_name] = []
@@ -145,7 +170,7 @@ def model():
             print("Classifier \"" + classifier_name + "failed.")
                     
     #Write the final summary in summary.txt
-    f = open("resample.txt", "w")
+    f = open("summary_cluster.txt", "w")
     
     f.write("Train results:\n")
     for classifier in performance_train:
@@ -164,5 +189,5 @@ def model():
 
 
 if __name__ == "__main__":
-    model()
+    model(scale = True, over = True)
     pass

@@ -1,8 +1,0 @@
-GridCV Results: 
-AdaBoostClassifier: [[{'learning_rate': 10.0, 'n_estimators': 30}, 0.15858528237307473]]
-BaggingClassifier: [[{'bootstrap': 'False', 'bootstrap_features': 'False', 'n_estimators': 75}, 0.08053691275167786]]
-ExtraTreesClassifier: [[{'bootstrap': 'False', 'criterion': 'gini', 'n_estimators': 80}, 0.0547945205479452]]
-GradientBoostClassifier: [[{'learning_rate': 1.0, 'n_estimators': 140}, 0.12448132780082986]]
-DecisionTreeClassifier: [[{'criterion': 'entropy', 'max_depth': None, 'max_features': 'auto'}, 0.10126582278481014]]
-SGDClassifier: [[{'alpha': 0.1, 'average': 7, 'eta0': 0.01, 'learning_rate': 'adaptive', 'loss': 'modified_huber', 'penalty': 'elasticnet'}, 0.06091370558375635]]
-KNeighborsClassifier: [[{'algorithm': 'auto', 'n_neighbors': 4, 'p': 3, 'weights': 'distance'}, 0.04571428571428572]]

@@ -14,7 +14,28 @@ def details_correction():
         if isinstance(nbr, str):
             nbr = nbr.replace(",", "")
         aux.append(nbr)
+        
+     
+    close = data["Prod_Closed_Date"]
+    day = []
+    month = []
+    year = []
+    for date in close:
+        date = str(date)
+        if "nan" == date:
+            day.append(0)
+            month.append(0)
+            year.append(0)
+        else:
+            date = date.split("/")
+            day.append(date[1])
+            month.append(date[0])
+            year.append(date[2])
             
+    data.drop("Prod_Closed_Date", axis = 1, inplace=True)
+    data["Day(Prod_Closed_Date)"] = day 
+    data["Month(Prod_Closed_Date)"] = month
+    data["Year(Prod_Closed_Date)"] = year
     data.drop("Net_Annual_Income", axis = 1, inplace = True)
     data["Net_Annual_Income"] = aux
     data.fillna(0, inplace=True)
@@ -24,7 +45,7 @@ def details_correction():
 def hot_encoding(): #only categorical attributes
     data = pd.read_csv("CreditTraining.csv")
     cat = ["Customer_Type", "P_Client","Educational_Level", "Marital_Status", "Prod_Sub_Category", "Source",
-           "Type_Of_Residence","Prod_Category",]
+           "Type_Of_Residence","Prod_Category"]
     
     for col in cat:
         one_hot = pd.get_dummies(data[[col]])
@@ -40,12 +61,11 @@ def DeepFeatureSynthesis(): #only numerical attributes
     customers_df = data[["Id_Customer", "BirthDate", "Customer_Open_Date", 
                          "Number_Of_Dependant", "Years_At_Residence", 
                          "Net_Annual_Income", "Years_At_Business", 
-                         "Prod_Decision_Date", "Nb_Of_Products"]] 
+                         "Prod_Decision_Date", "Nb_Of_Products"]]
     
     entity = {"customers": (customers_df, "Id_Customer")}
     feature_matrix_customers, _ = ft.dfs(entities=entity, target_entity="customers")
 
-    
     feature_matrix_customers.to_csv("dfs.csv", encoding = 'utf-8',  index = False)
     pass
 
@@ -56,11 +76,8 @@ def merge():
                          "Number_Of_Dependant", "Years_At_Residence", 
                          "Net_Annual_Income", "Years_At_Business", 
                          "Prod_Decision_Date", "Nb_Of_Products"]
-    
     for col in numerical:
         data = data.drop(col, axis = 1)
-        
-    data = data.drop("Prod_Closed_Date", axis = 1)
     data = data.join(dfs)
     data.to_csv("df.csv", encoding = 'utf-8',  index = False)
     pass
@@ -68,7 +85,10 @@ def merge():
 def feature_creation(pca = True, cluster = True):
     data = pd.read_csv("df.csv")
     data["Age(Prod_Decision_Date)"] = data["YEAR(Prod_Decision_Date)"] - data["YEAR(BirthDate)"]
+    data["Gap"] = data["YEAR(Prod_Decision_Date)"] - data["YEAR(Customer_Open_Date)"]
+
     data.to_csv("df.csv", encoding = 'utf-8',  index = False)
+    
     if pca:
         data_pca = pd.read_csv("data2_no_label_cluster.csv")
         data_pca.fillna(0, inplace = True)
@@ -142,9 +162,9 @@ def feature_creation(pca = True, cluster = True):
 
 if __name__ == "__main__":
     #details_correction()
-    #hot_encoding()
-    #DeepFeatureSynthesis()
-    #merge()
+    hot_encoding()
+    DeepFeatureSynthesis()
+    merge()
     feature_creation(pca=False, cluster = True)
     #
     
