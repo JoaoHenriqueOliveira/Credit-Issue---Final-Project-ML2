@@ -7,6 +7,8 @@ from sklearn.metrics import precision_recall_fscore_support as score
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_predict, cross_val_score
 from sklearn.model_selection import GridSearchCV
+from imblearn.under_sampling import RandomUnderSampler
+from imblearn.over_sampling import RandomOverSampler
 
 ##################################################################################################
 
@@ -33,11 +35,21 @@ def load_dataset(name):
     
     return X, y
     
-def prune():
-    filename = "../data/data_scaled.csv"
-    X, y = load_dataset(filename)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = 42)
+def prune(scaled = True, under = False, over = False):
+    if scaled:
+        filename = "../data/data_scaled.csv"
+    else:
+        filename = "../data/data.csv"
     
+    X, y = load_dataset(filename)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
+    
+    if under:
+        rus = RandomUnderSampler(random_state=0)
+        X_train, y_train = rus.fit_resample(X_train, y_train)
+    if over:
+        ros = RandomOverSampler(random_state=0)
+        X_train, y_train = ros.fit_resample(X_train, y_train)
     clf = [
             [AdaBoostClassifier(), "AdaBoostClassifier"],
             [BaggingClassifier(), "BaggingClassifier"],
@@ -53,18 +65,18 @@ def prune():
         name = elem[1]
         results[name] = []
         
-    print("SDGClassifier")
-    hyperT = dict(loss = ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],penalty = ["l2", "l1", "elasticnet"], alpha = [float(10 ** i)/10000 for i in range(4)], learning_rate = ["constant", "optimal", "invscaling", "adaptive"], eta0 = [float(10 ** i)/10000 for i in range(2)], average = [i for i in range(7,16)]) #early_stopping = ["True", "False"],
-    gridT = GridSearchCV(SGDClassifier(), hyperT, cv = 3, scoring='f1')
-    bestT = gridT.fit(X_train, y_train)
-    y_pred = bestT.predict(X_test)
-    f1 = f1_score(y_test, y_pred)
-    results["SGDClassifier"].append([gridT.best_params_ , f1])
-    print(f1)
-    print("*************************************************")
+    #print("SDGClassifier")
+    #hyperT = dict(loss = ["hinge", "log", "modified_huber", "squared_hinge", "perceptron"],penalty = ["l2", "l1", "elasticnet"], alpha = [float(10 ** i)/10000 for i in range(4)], learning_rate = ["constant", "optimal", "invscaling", "adaptive"], eta0 = [float(10 ** i)/10000 for i in range(4)], average = [i for i in range(5,20)]) #early_stopping = ["True", "False"],
+    #gridT = GridSearchCV(SGDClassifier(), hyperT, cv = 3, scoring='f1')
+    #bestT = gridT.fit(X_train, y_train)
+    #y_pred = bestT.predict(X_test)
+    #f1 = f1_score(y_test, y_pred)
+    #results["SGDClassifier"].append([gridT.best_params_ , f1])
+    #print(f1)
+    #print("*************************************************")
     
     print("GradientBoosClassifier")
-    hyperT = dict(learning_rate = [float(10 ** i)/100 for i in range(4)], n_estimators =[100*i for i in range(1,3)]) #min_samples_split = [i for i in range(1,4)],max_depth = [i for i in range(1,6)], verbose=[i for i in range(3),  min_samples_leaf=[i for i in range(1,6)] criterion = ["friedman_mse", "friedman_mae"]
+    hyperT = dict(n_estimators =[i for i in range(100,1000,100)]) #min_samples_split = [i for i in range(1,4)],max_depth = [i for i in range(1,6)], verbose=[i for i in range(3),  min_samples_leaf=[i for i in range(1,6)] criterion = ["friedman_mse", "friedman_mae"] learning_rate = [float(10 ** i)/100 for i in range(6)],
     gridT = GridSearchCV(GradientBoostingClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -74,7 +86,7 @@ def prune():
     print("***********************************************")
     
     print("KNeighborsClassifier")
-    hyperT = dict(n_neighbors = [i for i in range(3,6)], weights = ["uniform", "distance"], algorithm = ["auto", "ball_tree", "kd_tree", "brute"], p = [i for i in range(1,4)])
+    hyperT = dict(n_neighbors = [i for i in range(3,8)], weights = ["uniform", "distance"], algorithm = ["auto", "ball_tree", "kd_tree", "brute"], p = [i for i in range(1,4)])
     gridT = GridSearchCV(KNeighborsClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -84,7 +96,7 @@ def prune():
     print("*************************************************")
     
     print("DecisionTreeClassifier")
-    hyperT = dict(criterion = ["gini","entropy"],max_depth = [None]+[i for i in range(1,6)], max_features = ["auto", "sqrt","log2"]) #,  min_samples_leaf=[i for i in range(1,6)], , min_samples_split = [i for i in range(1,6)]
+    hyperT = dict(criterion = ["gini","entropy"], max_depth = [None]+[i for i in range(1,6)], max_features = ["auto", "sqrt","log2"]) #,  min_samples_leaf=[i for i in range(1,6)], , min_samples_split = [i for i in range(1,6)]
     gridT = GridSearchCV(DecisionTreeClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -94,7 +106,7 @@ def prune():
     print("*************************************************")
     
     print("AdaBoostClassifier")
-    hyperT = dict(n_estimators =[5*i for i in range(5,16)], learning_rate = [float(10 ** i)/100 for i in range(4)])
+    hyperT = dict(n_estimators =[i for i in range(50,300, 100)], learning_rate = [float(10 ** i)/100 for i in range(4)])
     gridT = GridSearchCV(AdaBoostClassifier(), hyperT, cv = 3, scoring='f1' )
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -106,7 +118,7 @@ def prune():
     
    
     print("BaggingClassifier")
-    hyperT = dict(n_estimators =[5*i for i in range(5,50)],  bootstrap =  ["True", "False"],bootstrap_features=["True", "False"]) #max_samples = [i for i in range(1,6)], max_features = [i for i in range(1,6)],
+    hyperT = dict(n_estimators =[i for i in range(90,600,100)],  bootstrap =  ["True", "False"],bootstrap_features=["True", "False"]) #max_samples = [i for i in range(1,6)], max_features = [i for i in range(1,6)],
     gridT = GridSearchCV(BaggingClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -116,7 +128,7 @@ def prune():
     print("***************************************")
     
     print("ExtraTreesClassifier")
-    hyperT = dict(n_estimators =[5*i for i in range(10,25)],criterion = ["gini", "entropy"], bootstrap =  ["True", "False"]) #max_depth = [None]+[i for i in range(1,6)],, verbose=[i for i in range(3) min_samples_split = [i for i in range(1,6)], min_samples_leaf=[i for i in range(1,6)],
+    hyperT = dict(n_estimators =[i for i in range(100,1000,100)], max_depth = [None]+[i for i in range(1,6)], criterion = ["gini", "entropy"], bootstrap =  ["True", "False"]) #,, verbose=[i for i in range(3) min_samples_split = [i for i in range(1,6)], min_samples_leaf=[i for i in range(1,6)],
     gridT = GridSearchCV(ExtraTreesClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -126,17 +138,20 @@ def prune():
     
     print("********************************************")
     
-    
-    f = open("prune.txt", "w")
-    f.write("GridCV Results: ")
+    if scaled:
+        f = open("prune_scaled_over.txt", "w")
+    else:
+        f = open("prune_not_scaled_over.txt", "w")
+    f.write("GridCV Results: \n")
     
     for classifier in results:
-        f.write(f"{classifier}: {results[classifier]}")
+        f.write(f"{classifier}: {results[classifier]}\n")
         
     f.close()   
     
     pass
 
 if __name__ == "__main__":
-    prune()
+    prune(scaled=True, under=False, over = True)
+    prune(scaled=False, under=False, over = True)
     pass

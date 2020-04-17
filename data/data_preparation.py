@@ -16,13 +16,26 @@ def details_correction():
         aux.append(nbr)
             
     data.drop("Net_Annual_Income", axis = 1, inplace = True)
-    data["Net_Annual_Income_transform"] = aux
+    data["Net_Annual_Income"] = aux
+    data.fillna(0, inplace=True)
     data.to_csv("CreditTraining.csv", encoding = 'utf-8',  index = False)
+    pass
+
+def hot_encoding(): #only categorical attributes
+    data = pd.read_csv("CreditTraining.csv")
+    cat = ["Customer_Type", "P_Client","Educational_Level", "Marital_Status", "Prod_Sub_Category", "Source",
+           "Type_Of_Residence","Prod_Category",]
     
+    for col in cat:
+        one_hot = pd.get_dummies(data[[col]])
+        data = data.drop(col, axis = 1)
+        data = data.join(one_hot)
+    
+    data.to_csv("CreditTraining_Hot_Encoding.csv", encoding = 'utf-8',  index = False)
     pass
 
 def DeepFeatureSynthesis(): #only numerical attributes
-    data = pd.read_csv("CreditTraining.csv")
+    data = pd.read_csv("CreditTraining_Hot_Encoding.csv")
     
     customers_df = data[["Id_Customer", "BirthDate", "Customer_Open_Date", 
                          "Number_Of_Dependant", "Years_At_Residence", 
@@ -36,7 +49,26 @@ def DeepFeatureSynthesis(): #only numerical attributes
     feature_matrix_customers.to_csv("dfs.csv", encoding = 'utf-8',  index = False)
     pass
 
+def merge():
+    dfs = pd.read_csv("dfs.csv")
+    data = pd.read_csv("CreditTraining_Hot_Encoding.csv")
+    numerical = ["Id_Customer", "BirthDate", "Customer_Open_Date", 
+                         "Number_Of_Dependant", "Years_At_Residence", 
+                         "Net_Annual_Income", "Years_At_Business", 
+                         "Prod_Decision_Date", "Nb_Of_Products"]
+    
+    for col in numerical:
+        data = data.drop(col, axis = 1)
+        
+    data = data.drop("Prod_Closed_Date", axis = 1)
+    data = data.join(dfs)
+    data.to_csv("df.csv", encoding = 'utf-8',  index = False)
+    pass
+
 def feature_creation(pca = True, cluster = True):
+    data = pd.read_csv("df.csv")
+    data["Age(Prod_Decision_Date)"] = data["YEAR(Prod_Decision_Date)"] - data["YEAR(BirthDate)"]
+    data.to_csv("df.csv", encoding = 'utf-8',  index = False)
     if pca:
         data_pca = pd.read_csv("data2_no_label_cluster.csv")
         data_pca.fillna(0, inplace = True)
@@ -65,8 +97,10 @@ def feature_creation(pca = True, cluster = True):
         df.to_csv("test_no_label.csv")  
           
     if cluster:
-        data_cluster = pd.read_csv("data2_no_label_cluster.csv")
-        data_cluster.fillna(0, inplace = True)
+        data_cluster = pd.read_csv("df.csv")
+        label = data_cluster["Y"]
+        data_cluster = data_cluster.drop(['Y'], axis = 1)
+        
         scaled_features = StandardScaler().fit_transform(data_cluster.values)
         scaled_features_df = pd.DataFrame(scaled_features, index = data_cluster.index, columns = data_cluster.columns)
         
@@ -102,13 +136,16 @@ def feature_creation(pca = True, cluster = True):
         data_cluster["DBSCAN eps=3"] = group_dbscan
         print(group_dbscan)
         
-        data_cluster.to_csv("data2_no_label_cluster.csv") 
-        
-        
+        data_cluster = data_cluster.join(label)
+        data_cluster.to_csv("df_cluster.csv", encoding = 'utf-8',  index = False)        
     pass
 
 if __name__ == "__main__":
     #details_correction()
+    #hot_encoding()
     #DeepFeatureSynthesis()
+    #merge()
     feature_creation(pca=False, cluster = True)
+    #
+    
     pass

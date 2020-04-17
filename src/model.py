@@ -7,6 +7,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_predict, cross_val_score
 
 from sklearn.preprocessing import StandardScaler
+from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
+from imblearn.under_sampling import RandomUnderSampler
 
 ##############################################################################################
 
@@ -76,6 +78,11 @@ def model():
     filename = "../data/data_scaled.csv"
     X, y = load_dataset(filename)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = 42)
+
+    ros = RandomOverSampler(random_state=0)
+    X_train, y_train = ros.fit_resample(X_train, y_train)
+    rus = RandomUnderSampler(random_state=0)
+    X_train, y_train = rus.fit_resample(X_train, y_train)
     
     for classifier, clf_name in clf: performance_train[clf_name] = []
     for classifier, clf_name in clf: performance_test[clf_name] = []
@@ -119,7 +126,7 @@ def model():
             performance_test[classifier_name].append(recall_test)
             
             #Cross validation
-            y_cv = cross_val_predict(classifier, X, y, cv = 5)
+            y_cv = cross_val_predict(classifier, X, y, cv = 3)
             #CV scores
             f1_cv = f1_score(y, y_cv)
             accuracy_cv = accuracy_score(y, y_cv)
@@ -138,7 +145,7 @@ def model():
             print("Classifier \"" + classifier_name + "failed.")
                     
     #Write the final summary in summary.txt
-    f = open("test_size_bigger.txt", "w")
+    f = open("resample.txt", "w")
     
     f.write("Train results:\n")
     for classifier in performance_train:
