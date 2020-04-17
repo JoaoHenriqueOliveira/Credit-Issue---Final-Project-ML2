@@ -19,8 +19,6 @@ from sklearn.ensemble import RandomForestClassifier # random forest is a meta es
 
 from sklearn.tree import DecisionTreeClassifier
 
-from sklearn.naive_bayes import GaussianNB
-
 from sklearn.linear_model import RidgeClassifier #Classifier using Ridge regression. This classifier first converts the target values into {-1,1} and then treats the problem as a regression task
 from sklearn.linear_model import LogisticRegression #Logistic Regression (aka logit, MaxEnt) classifier.
 from sklearn.linear_model import LogisticRegressionCV #Logistic Regression CV (aka logit, MaxEnt) classifier.
@@ -63,14 +61,11 @@ def model():
         
         [DecisionTreeClassifier(), "DecisionTreeClassifier"],
         
-        #[GaussianNB(), "GaussianNB"],
-        
         [RidgeClassifier(), "RidgeClassifier"],
         [LogisticRegression(), "LogisticRegression"],
         [LogisticRegressionCV(), "LogisticRegressionCV"],
         [SGDClassifier(), "SGDClassifier"],
         [KNeighborsClassifier(), "KNeighborsClassifier"],
-        #[RadiusNeighborsClassifier(), "RadiusNeighborsClassifier"]
         [SVC(), "SVC"]
     ]
     
@@ -80,7 +75,7 @@ def model():
     
     filename = "../data/data_scaled.csv"
     X, y = load_dataset(filename)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state = 42)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = 42)
     
     for classifier, clf_name in clf: performance_train[clf_name] = []
     for classifier, clf_name in clf: performance_test[clf_name] = []
@@ -143,7 +138,7 @@ def model():
             print("Classifier \"" + classifier_name + "failed.")
                     
     #Write the final summary in summary.txt
-    f = open("summary_final2.txt", "w")
+    f = open("test_size_bigger.txt", "w")
     
     f.write("Train results:\n")
     for classifier in performance_train:
