@@ -48,7 +48,7 @@ def prune(scale = True, pca = False, under = False, over = False):
         X = pd.DataFrame(scaled_features, index = X.index, columns = X.columns)
     
     if pca:
-        n_comp = 13
+        n_comp = 18
         columns = []
         for i in range(n_comp):
             columns.append("pca" +str(i+1))
@@ -76,8 +76,7 @@ def prune(scale = True, pca = False, under = False, over = False):
             [ExtraTreesClassifier(), "ExtraTreesClassifier"],
             [GradientBoostingClassifier(), "GradientBoostClassifier"],
             [DecisionTreeClassifier(), "DecisionTreeClassifier"],
-            [RandomForestClassifier(), "RandomForestClassifier"],
-            [KNeighborsClassifier(), "KNeighborsClassifier"]
+            [RandomForestClassifier(), "RandomForestClassifier"]
         ]
     
     results = {}
@@ -86,7 +85,7 @@ def prune(scale = True, pca = False, under = False, over = False):
         results[name] = []
         
     print("GradientBoosClassifier")
-    hyperT = dict(n_estimators =[10 ** i for i in range(2,5)]) #min_samples_split = [i for i in range(1,4)],max_depth = [i for i in range(1,6)], verbose=[i for i in range(3),  min_samples_leaf=[i for i in range(1,6)] criterion = ["friedman_mse", "friedman_mae"] learning_rate = [float(10 ** i)/100 for i in range(6)],
+    hyperT = dict(n_estimators =[10 ** i for i in range(3,5)], learning_rate = [float(10 ** i)/100 for i in range(2)], max_depth = [i for i in range(3,5)]) #min_samples_split = [i for i in range(1,4)], verbose=[i for i in range(3),  min_samples_leaf=[i for i in range(1,6)] criterion = ["friedman_mse", "friedman_mae"] 
     gridT = GridSearchCV(GradientBoostingClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -97,7 +96,7 @@ def prune(scale = True, pca = False, under = False, over = False):
     print("***********************************************")
     
     print("RandomForestClassifier")
-    hyperT = dict(n_estimators =[i for i in range(100,700,10)], criterion = ["gini", "entropy"], bootstrap = ["True", "False"])
+    hyperT = dict(n_estimators =[10 ** i for i in range(2,6)], criterion = ["gini", "entropy"], bootstrap = ["True", "False"], max_depth = [None] + [10 ** i for i in range(0,3)])
     gridT = GridSearchCV(RandomForestClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -107,19 +106,8 @@ def prune(scale = True, pca = False, under = False, over = False):
     print(f1)
     print("************************************************")
         
-    print("KNeighborsClassifier")
-    hyperT = dict(n_neighbors = [i for i in range(3,8)], weights = ["uniform", "distance"], algorithm = ["auto", "ball_tree", "kd_tree", "brute"], p = [i for i in range(1,4)])
-    gridT = GridSearchCV(KNeighborsClassifier(), hyperT, cv = 3, scoring='f1')
-    bestT = gridT.fit(X_train, y_train)
-    y_pred = bestT.predict(X_test)
-    f1 = f1_score(y_test, y_pred)
-    print(gridT.best_params_)
-    results["KNeighborsClassifier"].append([gridT.best_params_ , f1])
-    print(f1)
-    print("*************************************************")
-    
     print("DecisionTreeClassifier")
-    hyperT = dict(criterion = ["gini","entropy"], max_depth = [None]+[i for i in range(1,6)], max_features = ["auto", "sqrt","log2"]) #,  min_samples_leaf=[i for i in range(1,6)], , min_samples_split = [i for i in range(1,6)]
+    hyperT = dict(criterion = ["gini","entropy"], max_features = ["auto", "sqrt","log2"], max_depth = [None]+[i for i in range(6,20)],  min_samples_leaf = [i for i in range(2,6)]) #,  min_samples_leaf=[i for i in range(1,6)], , min_samples_split = [i for i in range(1,6)] , max_depth = [None]+[i for i in range(6,20)],
     gridT = GridSearchCV(DecisionTreeClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -130,7 +118,7 @@ def prune(scale = True, pca = False, under = False, over = False):
     print("*************************************************")
     
     print("AdaBoostClassifier")
-    hyperT = dict(n_estimators =[i for i in range(50,300, 100)], learning_rate = [float(10 ** i)/100 for i in range(4)])
+    hyperT = dict(n_estimators =[i for i in range(50,1000, 200)], learning_rate = [float(10 ** i)/10000 for i in range(4)])
     gridT = GridSearchCV(AdaBoostClassifier(), hyperT, cv = 3, scoring='f1' )
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -154,7 +142,7 @@ def prune(scale = True, pca = False, under = False, over = False):
     print("***************************************")
     
     print("ExtraTreesClassifier")
-    hyperT = dict(n_estimators =[i for i in range(100,1000,100)], max_depth = [None]+[i for i in range(1,6)], criterion = ["gini", "entropy"], bootstrap =  ["True", "False"]) #,, verbose=[i for i in range(3) min_samples_split = [i for i in range(1,6)], min_samples_leaf=[i for i in range(1,6)],
+    hyperT = dict(n_estimators =[i for i in range(100,900,100)], max_depth = [None]+[i for i in range(1,6)], criterion = ["gini", "entropy"], verbose = [0,1])#,,  min_samples_split = [i for i in range(1,6)], min_samples_leaf=[i for i in range(1,6)],
     gridT = GridSearchCV(ExtraTreesClassifier(), hyperT, cv = 3, scoring='f1')
     bestT = gridT.fit(X_train, y_train)
     y_pred = bestT.predict(X_test)
@@ -164,22 +152,16 @@ def prune(scale = True, pca = False, under = False, over = False):
     print(f1)
     
     print("********************************************")
-    
-    if scale:
-        f = open("test_prune_scale_under_over.txt", "w")
-    else:
-        f = open("pca.txt", "w")
-        
+
+    f = open("optimize.txt", "w")    
     f.write("GridCV Results: \n")
     
     for classifier in results:
-        f.write(f"{classifier}: {results[classifier]}\n")
-        
-    f.close()   
-    
+        f.write(f"{classifier}: {results[classifier]}\n")        
+    f.close()
     pass
 
 if __name__ == "__main__":
-    #prune(scale=True, under=False, over = True)
-    prune(pca=True,over=True)
+    
+    prune(scale=True,over=True)
     pass

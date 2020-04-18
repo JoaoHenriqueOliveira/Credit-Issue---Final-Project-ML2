@@ -1,17 +1,20 @@
+#This program runs several classifiers and print
+#the summary of them in a txt file.
+#One may control if he wishes to scale the data, perform under/over sampling, or
+#train the model with PCA.
+
 # util
 import pandas as pd
 
 from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
-from sklearn.metrics import precision_recall_fscore_support as score
 from sklearn.model_selection import train_test_split
 from sklearn.model_selection import cross_val_predict, cross_val_score
 
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.preprocessing import StandardScaler
-from imblearn.over_sampling import RandomOverSampler, SMOTE, ADASYN
+from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 from sklearn.decomposition import PCA
-from sklearn.preprocessing import MinMaxScaler
-
 
 ##############################################################################################
 
@@ -29,44 +32,34 @@ from sklearn.linear_model import LogisticRegression #Logistic Regression (aka lo
 from sklearn.linear_model import LogisticRegressionCV #Logistic Regression CV (aka logit, MaxEnt) classifier.
 from sklearn.linear_model import SGDClassifier
 
-from sklearn.naive_bayes import MultinomialNB
 from sklearn.neighbors import KNeighborsClassifier #Classifier implementing the k-nearest neighbors vote.
 from sklearn.neighbors import RadiusNeighborsClassifier #Classifier implementing a vote among neighbors within a given radius
 
 from sklearn.svm import SVC #Support Vector Classification
- 
-from pygam import LogisticGAM, s, f #interesting stuff
 
-from sklearn.ensemble import VotingClassifier #Voting for the best classifiers
+##############################################################################################
 
 def load_dataset(name):
     print(f"Loading dataset: {name}")
     
     df = pd.read_csv(name)
     variable_names = list(df)
-    aux = []
-    for elem in variable_names:
-        if elem != "Y":
-            aux.append(elem)
-            
     print(f"Variable Names: {variable_names}")
     
+    aux = [elem for elem in variable_names if elem != "Y"]
     df.fillna(0, inplace=True)
     
     X, y = df[aux], df["Y"]
-    
     return X, y
 
-def model(scale = False, pca = False, over = False, under = False):
+def model(scale = False, pca = False, over = False, under = False, n_comp = 20):
     clf = [
         [AdaBoostClassifier(), "AdaBoostClassifier"],
         [BaggingClassifier(), "BaggingClassifier"],
         [ExtraTreesClassifier(), "ExtraTreesClassifier"],
         [GradientBoostingClassifier(), "GradientBoostClassifier"],
         [RandomForestClassifier(), "RandomForestClassifier"],
-        
         [DecisionTreeClassifier(), "DecisionTreeClassifier"],
-        #[MultinomialNB(), "MultinomialNB"],
         [RidgeClassifier(), "RidgeClassifier"],
         [LogisticRegression(), "LogisticRegression"],
         [LogisticRegressionCV(), "LogisticRegressionCV"],
@@ -86,11 +79,10 @@ def model(scale = False, pca = False, over = False, under = False):
         scaled_features = StandardScaler().fit_transform(X.values)
         X = pd.DataFrame(scaled_features, index = X.index, columns = X.columns)
     
-    if pca:
-        n_comp = 20
+    if pca: #transforms X to its principal axis
         columns = []
         for i in range(n_comp):
-            columns.append("pca" +str(i+1))
+            columns.append("pca" + str(i + 1))
             
         scaled_features = MinMaxScaler().fit_transform(X.values)
         scaled_features_df = pd.DataFrame(scaled_features, index = X.index, columns = X.columns)
@@ -102,10 +94,11 @@ def model(scale = False, pca = False, over = False, under = False):
                  
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state = 42)
     
-    if over:
+    if over: #perform over sampling in training data
         ros = RandomOverSampler(sampling_strategy = 'minority')
         X_train, y_train = ros.fit_resample(X_train, y_train)
-    if under:
+        
+    if under: #perform under sampling in training data
         rus = RandomUnderSampler(sampling_strategy = 'majority')
         X_train, y_train = rus.fit_resample(X_train, y_train)
     
@@ -119,10 +112,12 @@ def model(scale = False, pca = False, over = False, under = False):
         classifier_name = elem[1]
         print(classifier_name)
         
-        try:    
+        try: 
+            #fit the model
             classifier.fit(X_train, y_train)
-            
+            #predict in training data
             y_hat = classifier.predict(X_train)
+            
             #Train Scores:
             f1_train = f1_score(y_train, y_hat)
             accuracy_train = accuracy_score(y_train, y_hat)
@@ -130,12 +125,13 @@ def model(scale = False, pca = False, over = False, under = False):
             recall_train = recall_score(y_train, y_hat)
             #Print train Scores
             print(f"Train scores: \tf1-score: {f1_train}\tAccuracy: {accuracy_train}\tPrecision: {precision_train}\tRecall: {recall_train}")
-            #Sava train scors for comparison
+            #Save train scors for comparison
             performance_train[classifier_name].append(f1_train)
             performance_train[classifier_name].append(accuracy_train)
             performance_train[classifier_name].append(precision_train)
             performance_train[classifier_name].append(recall_train)
             
+            #Prediction
             y_pred = classifier.predict(X_test)
             #Test scores
             f1_test = f1_score(y_test, y_pred)
@@ -150,7 +146,7 @@ def model(scale = False, pca = False, over = False, under = False):
             performance_test[classifier_name].append(precision_test)
             performance_test[classifier_name].append(recall_test)
             
-            #Cross validation
+            #Cross validation (cv = 3)
             y_cv = cross_val_predict(classifier, X, y, cv = 3)
             #CV scores
             f1_cv = f1_score(y, y_cv)
@@ -170,9 +166,10 @@ def model(scale = False, pca = False, over = False, under = False):
             print("Classifier \"" + classifier_name + "failed.")
                     
     #Write the final summary in summary.txt
-    f = open("summary_cluster.txt", "w")
+    f = open("summary.txt", "w")
+    f.write(f"Scale = {scale}, PCA = {pca}, Over = {over}, Under = {under}, n_comp = {n_comp}\n")
     
-    f.write("Train results:\n")
+    f.write("\nTrain results:\n")
     for classifier in performance_train:
         f.write(f"{classifier} -> F1: {performance_train[classifier][0]} \tAccuracy: {performance_train[classifier][1]}\tPrecision: {performance_train[classifier][2]}\tRecall: {performance_train[classifier][3]} \n")            
     
@@ -189,5 +186,6 @@ def model(scale = False, pca = False, over = False, under = False):
 
 
 if __name__ == "__main__":
-    model(scale = True, over = True)
+    model(over = True)
+    
     pass
